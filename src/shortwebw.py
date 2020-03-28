@@ -5,17 +5,7 @@ from PyQt5.QtCore import QObject,  QUrl,  QRect
 
 import os, time
 
-def getAcc(note):
-  acc = note[1:-1]
-  if acc: 
-    return acc
-  else: 
-    return ""
-
-def convNote(note):
-   note = note.lower()
-   note = note[:-1] + "/" +note[-1]
-   return note
+from utils import getAcc, NStrToVStr
 
 class ShortWebW(QWidget):
   def __init__(self):
@@ -39,15 +29,15 @@ class ShortWebView(QWebEngineView):
         local_url = QUrl.fromLocalFile(file_path)
         self.load(local_url)
 
-    def drawNote(self, key, note, clef, duration="q"):
-        data = {"btnNum":str(key), "note":convNote(note), "duration":duration, "acc":getAcc(note), "clef":clef}
-        #js_string = r'staff.drawNote({"key":'+str(key)+', "note":["'+convNote(note)+'"], "duration":"'+duration+'"});'
+    def drawNote(self, btnIdx, noteStr, clef, duration="q"):
+        data = {"btnIdx":str(btnIdx), "noteStr":NStrToVStr(noteStr), "duration":duration, "acc":getAcc(noteStr), "clef":clef}
+        #js_string = r'staff.drawNoteStr({"btnIdx":'+str(btnIdx)+', "noteStr":["'+NStrToVStr(noteStr)+'"], "duration":"'+duration+'"});'
         js_string = r"draw_note(" + str(data) +");"
         print(js_string)
         self.page().runJavaScript(js_string)
 
-    def eraseNote(self, key):
-        js_string = r'erase_note('+str(key)+');'
+    def eraseNote(self, btnIdx):
+        js_string = r'erase_note('+str(btnIdx)+');'
         self.page().runJavaScript(js_string)
 
 
@@ -62,13 +52,13 @@ if __name__ == "__main__":
   view = ShortWebView()
   btn1 = QPushButton(view)
   def wrapper1():
-    view.drawNote(76,"C4", "bass")
+    view.drawNoteStr(76,"C4", "bass")
   btn1.clicked.connect(wrapper1)
 
   btn2 = QPushButton(view)
   btn2.setGeometry(QRect(50, 50,50,50))
   def wrapper2():
-    view.eraseNote(76)
+    view.eraseNoteStr(76)
   btn2.clicked.connect(wrapper2)
 
   btn3 = QPushButton(view)
@@ -85,6 +75,6 @@ if __name__ == "__main__":
   print(w.sizeHint())
   print(w.settings())
   #time.sleep(5)
-  #view.drawNote(75, "C4")
-  #view.eraseNote(75)
+  #view.drawNoteStr(75, "C4")
+  #view.eraseNoteStr(75)
   app.exec_()

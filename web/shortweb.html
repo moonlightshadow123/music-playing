@@ -26,8 +26,8 @@
 <script type="text/javascript">
   draw_stave();
 
-  var note1 = {"btnNum":75, "note":"cb/4", "acc":"b", "clef":"treble"};
-  var note2 = {"btnNum":74, "note":"c#/3", "acc":"#", "clef":"bass"};
+  var note1 = {"btnIdx":75, "noteStr":"cb/4", "acc":"b", "clef":"treble"};
+  var note2 = {"btnIdx":74, "noteStr":"c#/3", "acc":"#", "clef":"bass"};
   document.getElementById('add1-btn').addEventListener('click', (e) => {draw_note(note1);});
   document.getElementById('add2-btn').addEventListener('click', (e) => {draw_note(note2);});
   document.getElementById('rm1-btn').addEventListener('click', (e) => {erase_note(75);});

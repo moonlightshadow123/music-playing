@@ -32,8 +32,8 @@ function draw_stave(){
 
 function draw_note(data){
 
-  var btnNum = data["btnNum"]
-  var key = data["note"];
+  var btnNum = data["btnIdx"]
+  var key = data["noteStr"];
   var acc = data["acc"]
   var duration = "4";
   var clef = data["clef"];

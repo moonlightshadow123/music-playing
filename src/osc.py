@@ -1,62 +1,38 @@
-from pythonosc import udp_client
 import pyOSC3
 import threading
 from config import config
+from utils import NIdxToFreq
 
-class NoteClient:
+class OSC:
 	def __init__(self):
 		ip, port = config["ip"], config["port"]
 		self.lock = threading.Lock()
 		self.client = pyOSC3.OSCClient()
 		self.client.connect((ip, port))
-		self.onDict = {} # key -- (note, amp, decay)
-		self.sharp = False
-		self.flat = False
 
-	def noteOn(self, key, note):
-		print("Note on!!")
+	def noteOn(self, NIdx):
 		msg = pyOSC3.OSCMessage()
 		msg.setAddress("/noteOn")
-		from config import config
-		amp, decay = config["amp"], config["decay"]
-		msg.append(note)
-		msg.append(amp)
-		msg.append(decay)
+		msg.append(NIdx)
+		freq = NIdxToFreq(NIdx)
+		# print(freq)
+		msg.append(freq)
 		with self.lock:
 			self.client.send(msg)
-			if self.sharp: note += 1
-			if self.flat: note -= 1
-			self.onDict[key] = (note, amp, decay)
 
-	def noteOff(self, key):
-		print("Note off!!")
-		with self.lock:
-			pair = self.onDict.get(key)
-			if not pair:
-				return
-			(note, amp, decay) = pair
+	def noteOff(self, NIdx):
 		msg = pyOSC3.OSCMessage()
 		msg.setAddress("/noteOff")
-		msg.append(note)
-		msg.append(amp)
-		msg.append(decay)
+		msg.append(NIdx)
 		with self.lock:
 			self.client.send(msg)
-			if self.onDict.get(key):
-				del self.onDict[key]
 
-	def sharpOn(self):
+	def clear(self):
+		msg = pyOSC3.OSCMessage()
+		msg.setAddress("/clear")
 		with self.lock:
-			self.sharp = True
+			self.client.send(msg)
 
-	def sharpOff(self):
-		with self.lock:
-			self.sharp = False
-
-	def flatOn(self):
-		with self.lock:
-			self.flat = True
-
-	def faltOff(self):
-		with self.lock:
-			self.flat = False
+if __name__ == "__main__":
+	o = OSC()
+	o.noteOff(60)

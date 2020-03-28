@@ -2,10 +2,13 @@ import sys, pickle
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QSizePolicy, QGridLayout, QPushButton
 import PyQt5.QtGui
 
+from config import btnNum_btnIdx, btnIdx_noteIdx, noteIdx_noteStr
+
 class Btn(QPushButton):
-   def __init__(self, *args, btnNum=0, **kwargs):
+   def __init__(self, btnIdx, parent, *args,**kwargs):
       super(Btn, self).__init__(*args, **kwargs)
-      self.btnNum = btnNum
+      self.btnIdx = btnIdx
+      self.parent = parent
       self.press_color = "#BFBABA"
       self.release_color = "#DBD6D6"
       self.setStyleSheet('background-color:' + self.release_color)
@@ -13,30 +16,29 @@ class Btn(QPushButton):
       self.released.connect(self.on_release)
    
    def on_press(self):
-      # self.setStyleSheet("")
       self.setStyleSheet('background-color:' + self.press_color)
+      if self.parent: self.parent.parent.btnOn(self.btnIdx)
 
    def on_release(self):
       self.setStyleSheet('background-color:' + self.release_color)
+      if self.parent: self.parent.parent.btnOff(self.btnIdx)
 
 class KBW(QWidget):
-   def __init__(self):
+   def __init__(self, parent):
       super(KBW, self).__init__()
+      self.parent = parent
       self.grid = QGridLayout(self)
       self.btn_list = []
-      self.cur_key_num = 0
+      self.cur_btnIdx = 0
       self.genBtns()
       self.key_list = []
-      with open("../data/btnNum_btnIdx.pkl", "rb") as f:
-         self.btnNum_btnIdx = pickle.load(f)
-   
 
    def addBtn(self, row, col, width, height):
-      btn = Btn(str(self.cur_key_num))
+      btn = Btn(self.cur_btnIdx, self)
       btn.setSizePolicy(QSizePolicy.MinimumExpanding,QSizePolicy.Preferred)
       self.btn_list.append(btn)
       self.grid.addWidget(btn, row, col, width, height)      
-      self.cur_key_num += 1
+      self.cur_btnIdx += 1
 
    def genBtns(self):
       self.gen0()
@@ -94,14 +96,14 @@ class KBW(QWidget):
       if not event.isAutoRepeat():
          print(str(len(self.key_list)) + ": " + str(event.key()) + ": "+ event.text())
          # self.key_list.append(event.key())
-         btnIdx = self.btnNum_btnIdx[event.key()]
+         btnIdx = btnNum_btnIdx[event.key()]
          self.btn_list[btnIdx].pressed.emit()
 
    def keyReleaseEvent(self, event):
       if not event.isAutoRepeat():
          print(str(len(self.key_list)) + ": " + str(event.key()))
          # self.key_list.append(event.key())
-         btnIdx = self.btnNum_btnIdx[event.key()]
+         btnIdx = btnNum_btnIdx[event.key()]
          self.btn_list[btnIdx].released.emit()
 
    def dump(self):
@@ -113,12 +115,10 @@ class KBW(QWidget):
          self.key_list = pickle.dump(f)
 
 
-     
-   
 if __name__ == '__main__':
    app = QApplication(sys.argv)
    # win = MainWindow();
-   win = KBW()
+   win = KBW(None)
    win.show()
    app.exec_()
    # win.dump()

@@ -170,12 +170,22 @@ var vexscoll = new VexScroll(4,4);
 </script>-->
 
 <script type="text/javascript">
+  /*
 var data = request();
 var tickQue = draw(data);
+
 var line = draw_line() 
-document.getElementById('move-btn').addEventListener('click', (e) => {move(line, tickQue)});
-document.getElementsByTagName("svg")[0].style.display = "inline";
-document.getElementsByTagName("svg")[0].style.float = "left";
+
+set_m_k("4/4", "C#");
+draw_stave();
+var data = request();
+draw_notes(data);
+//draw_notes1();
+draw_line();
+console.log(xs);
+/**/
+
+document.getElementById('move-btn').addEventListener('click', (e) => {move()});
   //sleep(1000);
 // move(line, tickQue);
 </script>

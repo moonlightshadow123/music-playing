@@ -1,3 +1,26 @@
+var context;
+var tre_stave;
+var bas_stave;
+var timeSign = "4/4";
+var keySign = "C";
+
+var line;
+var xs = []; // (shift, nstrs)
+
+var measure_len = 800;
+var speed = 0.8;
+
+function set_move_speed(s){
+    speed = s;
+    console.error("speed = "+ s.toString());
+}
+
+function set_m_k(m, k){
+    timeSign = m;
+    keySign = k;
+    m_beats = parseInt(m.charAt(0))*2;
+    m_value = parseInt(m.charAt(2));
+}
 
 function request(){
 	  var list = [[["c#/4", "#", 4]], [["c/4","", 4]],[["d/4", "", 8]],[["d/4", "", 8]], [["c#/4","#", 4],["d/4","", 4,]]];
@@ -18,12 +41,15 @@ function draw_line(){
 	(document.getElementsByTagName("svg")[0]).appendChild(newLine);
 
 	line = SVG(newLine);
-	return line;
+    move();
 }
 
 function create_notes(notes_raw, clef){
     var notes = [];
     notes_raw.forEach(function(tick_note,index){
+      if(tick_note == "|"){
+        notes.push(new VF.BarNote()); return;
+      }  
       var keys = tick_note.map(function(e, i){return e[0]});
       var accs = tick_note.map(function(e, i){return e[1]});
       var durs = tick_note.map(function(e, i){return e[2]});
@@ -32,6 +58,7 @@ function create_notes(notes_raw, clef){
         keys: keys,
         duration: durs[0].toString(),
       });
+
       accs.forEach(function(e,i){
         if(e) note.addAccidental(i, new VF.Accidental(e));
       });
@@ -41,49 +68,73 @@ function create_notes(notes_raw, clef){
     return notes;
   }
 
-function draw(data){
-
-    // Create an SVG renderer and attach it to the DIV element named "boo".
+function draw_stave(){
+    if(document.getElementsByTagName("svg").length > 0)
+        document.getElementsByTagName("svg")[0].remove();
     var div = document.getElementById("boo")
     var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
 
     // Configure the rendering context.
     renderer.resize(1000, 300);
-    var context = renderer.getContext();
+    context = renderer.getContext();
     context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
 
     // Create a stave of width 400 at position 10, 40 on the canvas.
-    var tre_stave = new VF.Stave(10, 40, 800);
+    tre_stave = new VF.Stave(10, 40, 800);
     // Add a clef and time signature.
-    tre_stave.addClef("treble").addTimeSignature("4/4");
+    tre_stave.addClef("treble").addTimeSignature(timeSign);
+    tre_stave.addModifier(new Vex.Flow.KeySignature(keySign));
 
 
-
-    var bas_stave = new VF.Stave(10, 140, 800);
-    bas_stave.addClef("bass").addTimeSignature("4/4");
+    bas_stave = new VF.Stave(10, 140, 800);
+    bas_stave.addClef("bass").addTimeSignature(timeSign);
+    bas_stave.addModifier(new Vex.Flow.KeySignature(keySign));
 
 
     // Connect it to the rendering context and draw!
     tre_stave.setContext(context).draw();
     bas_stave.setContext(context).draw();
 
+    document.getElementsByTagName("svg")[0].style.display = "inline";
+    document.getElementsByTagName("svg")[0].style.float = "left";
+}
+/*
+function draw_notes1(){
+
+var musicObjects = [
+
+new Vex.Flow.Barline("repeat_begin"),
+
+new Vex.Flow.Clef("treble"),
+
+new Vex.Flow.KeySignature("C#"),
+
+new Vex.Flow.TimeSignature("4/4"),
+
+new Vex.Flow.StaveNote({ keys: ["c#/4"], duration: "q" }),
+new Vex.Flow.StaveNote({ keys: ["d/4"], duration: "q" }),
+new Vex.Flow.StaveNote({ keys: ["b/4"], duration: "qr" }),
+new Vex.Flow.StaveNote({ keys: ["c/4", "e/4", "g/4"], duration: "q" }),
+
+new Vex.Flow.Barline("repeat_end")
+];
+
+Vex.Flow.Formatter.FormatAndDraw(context, tre_stave, musicObjects);
+}
+*/
+function draw_notes(data){
+
     //this.formatter = new VF.Formatter();
-
-    var tickQue = []; // (svg_notes[], notes[], toshift)
-
-   	var m_beats = 8;
-    var m_value = 4;
-    var measure_len = 800;
-    var speed = 400/3000;
-   
 
     var tre_notes_raw = data["tre_notes_raw"];
     var bas_notes_raw = data["bas_notes_raw"];
     var tre_notes = create_notes(tre_notes_raw, "treble");
     var bas_notes = create_notes(bas_notes_raw, "bass");
 
-    var tre_voice = (new VF.Voice({num_beats: m_beats,  beat_value: m_value})).addTickables(tre_notes);
-    var bas_voice = (new VF.Voice({num_beats: m_beats,  beat_value: m_value})).addTickables(bas_notes);
+    //var tre_voice = (new VF.Voice({num_beats: m_beats,  beat_value: m_value})).addTickables(tre_notes);
+    //var bas_voice = (new VF.Voice({num_beats: m_beats,  beat_value: m_value})).addTickables(bas_notes);
+    var tre_voice = (new VF.Voice()).setStrict(false).addTickables(tre_notes);
+    var bas_voice = (new VF.Voice()).setStrict(false).addTickables(bas_notes);
 
     console.log("There!");
 
@@ -103,38 +154,49 @@ function draw(data){
     */
     console.log("Here!");
 
-    // Add notes to tickQue
+    // Add notes to xs
     var tick_list = formatter.tickContexts.array;
     var i = 0;
-    var xs = tick_list.map(function(e, i){
+    console.log(tick_list);
+    // console.error(tick_list);
+    tick_list.forEach(function(e, i){
     	var notes = e.tickables;
-    	var shift = Math.min.apply(null, notes.map(function(e,i){return SVG(e.getAttribute("el")).x()}));
-    	var strs = [];
+        try{ 
+    	    var shift = Math.min.apply(null, notes.map(function(e,i){
+                if(e.isRest()) return Infinity;
+                return SVG(e.getAttribute("el")).x();
+            }));
+        }catch(error){ // For bar note
+            return;
+        }
+        if(shift == Infinity) return; // For rest note 
+    	// console.error(shift);
+        var strs = [];
     	notes.forEach(function(e, i){
     		var i = 0;
     		for(i=0;i<e.keys.length;i++){
     			strs.push([e.clef, e.keys[i]]);
     		}
     	});
-    	return [shift, strs]
+    	xs.push([shift, strs])
     });
+    console.error(xs);
 
-  	return xs;
+  	// return xs;
 }
 
-function move(line, tickQue){
-	if(tickQue.length == 0) location.reload();
-	console.log(tickQue);
-	var cur_x = tickQue[0][0];
-	var cur_notes = tickQue[0][1];
+function move(){
+    console.error(speed);
+	if(xs.length == 0) return;
+	var cur_x = xs[0][0];
+	var cur_notes = xs[0][1];
 	display(cur_notes, "tre_area", "treble");
 	display(cur_notes, "bas_area", "bass");
 	console.log(cur_notes);
-	var speed = 400/3000;
 	var pre_x = line.x();
 	//var cur_x = cur_note.x();
 	line.animate({duration:(cur_x-pre_x)/speed}).x(cur_x);
-	tickQue.shift();
+	xs.shift();
 }
 
 function resize(){

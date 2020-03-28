@@ -1,6 +1,7 @@
 (
 s.boot;
 NetAddr.langPort.postln;
+~keys = Array.newClear(128);
 
 SynthDef.new( \piano, { arg freq = 440, decay = 0.8, gate=1;
     var env, sig;
@@ -13,26 +14,15 @@ SynthDef.new( \piano, { arg freq = 440, decay = 0.8, gate=1;
     //sig.play();
 }).add;
 
-~keys = Array.newClear(128);
-
-/*
-OSCFunc({ | msg, time, addr, port |
-    var x;
-    [msg, time, addr, port].postln;
-    msg[1].postln;
-    ~keys[msg[1].asInteger] = Synth.new(\piano, [\freq, msg[2].asInteger]);
-    //x = {MdaPiano.ar(freq:msg[1].asInteger,decay:0.2)}.play();
-},'/noteOn');
-*/
 OSCdef.new(
 	\noteOn,
 	{
 		arg msg, time, addr, port;
 		[msg, time, addr, port].postln;
-		if(~keys[msg[1].asInteger]){
-			~keys[msg[1].asInteger].set(/gate, 0);
-		}
-		~keys[msg[1].asInteger] = Synth.new(\piano, [\freq, msg[2].asFloat]);
+		if(~keys[msg[1].asInteger].notNil){
+			~keys[msg[1].asInteger].free
+		};
+		~keys[msg[1].asInteger] = Synth(\piano, [\freq, msg[2].asFloat]);
 	},
 	'/noteOn'
 );
@@ -51,6 +41,7 @@ OSCFunc({ | msg, time, addr, port |
 	[msg, time, addr, port].postln;
 	msg[1].postln;
 	~keys[msg[1].asInteger].set(\gate, 0);
+
 	//x = {MdaPiano.ar(freq:msg[1].asInteger,decay:0.2)}.play();
 },'/noteOff');
 )
