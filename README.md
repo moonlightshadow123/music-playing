@@ -4,9 +4,12 @@ but in return, I managed my study and mental status poorly. That is not a period
 
 # Current functionality
 - playing music by keyboard.
-- music, e.g. __Molihua__, playing.
+- music, e.g. __Molihua__, auto-playing. 
+![](screenshoot/auto-playing.gif)
+- pausing and resuming auto-playing.
 - music practice, hit the right key and go alone.
 
 # Future functionality
 - open any correctly composed `.abc` music file.
+- UI improvement.
 - midi device support.
