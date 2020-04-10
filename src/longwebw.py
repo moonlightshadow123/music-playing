@@ -56,16 +56,16 @@ class LongWebW(QWidget):
     def renewParser(self, file_name):
         self.idx = 0;
         self.parser = Parser(file_name)
-        self.view_list[0].set_m_k("4/4", "C#").draw_stave()
-        self.view_list[1].set_m_k("4/4", "C#").draw_stave()
+        self.view_list[0].set_m_k(self.parser.time_sign, self.parser.key_sign).draw_stave()
+        self.view_list[1].set_m_k(self.parser.time_sign, self.parser.key_sign).draw_stave()
         self.give_data(0)
         self.give_data(1)
         self.view_list[0].draw_line()
    
-    def noteOn(self, nstr):
+    def noteOn(self, nstr, checkMove=True):
         with self.lock:
             self.cur_notes_set.add(nstr)
-            self.check_move()
+            if checkMove: self.check_move()
         NIdx = VStrToNIdx(nstr)
         if NIdx >=0: self.osc.noteOn(NIdx)
         
@@ -120,7 +120,8 @@ class LongWebW(QWidget):
                 for each in offset:
                     self.noteOff(each)
                 for each in onset:
-                    self.noteOn(each)
+                    self.noteOn(each, False)
+                self.check_move()
             ooIdx += 1
         self.auto = False
 
@@ -142,6 +143,8 @@ class LongWebW(QWidget):
                                     addToSet, 
                                     lambda res, key, set1, set2: res.append((set1.union(set2), key)),
                                     set(["|"]))
+        print("onData_list!!!!!!!!!!!!!")
+        print(self.onData_list)
         self.offData_list[idx] = merge2list(tre_data, bas_data,
                                     lambda cur_data: cur_data[0][4],
                                     addToSet,
@@ -158,6 +161,8 @@ class LongWebW(QWidget):
                                     lambda cur_data: cur_data[1],
                                     res_onoff, # lambda cur_set, cur_data: cur_set.union(cur_data[0]),
                                     append_onoff)
+        print("onOff_list!!!!!!!!!!!!!")
+        print(self.onOff_list)
 
     def build_view_list(self, data, idx):
         view = self.view_list[idx]
@@ -169,11 +174,8 @@ class LongWebView(QWebEngineView):
     def __init__(self):
         super(LongWebView, self).__init__()
         self.file_name = "longweb.html"
-        self.measure = "4/4"
-        self.key = "C"
         file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, "web" , self.file_name))
-        self.local_url = QUrl.fromLocalFile(file_path)
-        
+        self.local_url = QUrl.fromLocalFile(file_path)  
         self.load(self.local_url)
         
     def refresh(self):

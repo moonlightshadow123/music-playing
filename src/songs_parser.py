@@ -10,8 +10,8 @@ class Parser:
 		self.stream = music21.stream.Stream(c)
 		self.tre_iter = iter(self.stream[1])
 		self.bas_iter = iter(self.stream[2])
-		self.measure = "4/4"
-		self.key = "C"
+		self.time_sign = "4/4"
+		self.key_sign = "C"
 		self.speed = 88
 
 	def getNextTre(self):
@@ -57,6 +57,7 @@ class Parser:
 		res.append(qlenToDur(note.duration.quarterLength))
 		res.append(note.offset + m_offset)
 		res.append(note.offset + m_offset + note.duration.quarterLength)
+		res.append(note.duration.components[0][1])
 		return res
 
 	def rToData(self, rest, m_offset):
@@ -68,6 +69,7 @@ class Parser:
 		res.append(qlenToDur(rest.duration.quarterLength) + "r")
 		res.append(rest.offset + m_offset)
 		res.append(rest.offset + m_offset + rest.duration.quarterLength)
+		res.append(rest.duration.components[0][1])
 		return res
 
 	def getNext(self):

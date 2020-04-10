@@ -8,7 +8,7 @@ var line;
 var xs = []; // (shift, nstrs)
 
 var measure_len = 800;
-var speed = 0.8;
+var speed = 100;
 
 function set_move_speed(s){
     speed = s;
@@ -80,13 +80,13 @@ function draw_stave(){
     context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
 
     // Create a stave of width 400 at position 10, 40 on the canvas.
-    tre_stave = new VF.Stave(10, 40, 800);
+    tre_stave = new VF.Stave(10, 40, 900);
     // Add a clef and time signature.
     tre_stave.addClef("treble").addTimeSignature(timeSign);
     tre_stave.addModifier(new Vex.Flow.KeySignature(keySign));
 
 
-    bas_stave = new VF.Stave(10, 140, 800);
+    bas_stave = new VF.Stave(10, 140, 900);
     bas_stave.addClef("bass").addTimeSignature(timeSign);
     bas_stave.addModifier(new Vex.Flow.KeySignature(keySign));
 
@@ -98,6 +98,7 @@ function draw_stave(){
     document.getElementsByTagName("svg")[0].style.display = "inline";
     document.getElementsByTagName("svg")[0].style.float = "left";
 }
+
 /*
 function draw_notes1(){
 
@@ -131,18 +132,40 @@ function draw_notes(data){
     var tre_notes = create_notes(tre_notes_raw, "treble");
     var bas_notes = create_notes(bas_notes_raw, "bass");
 
+    // VF.Beam({ notes: tre_notes });
+    // VF.Beam({ notes: bas_notes });
+
     //var tre_voice = (new VF.Voice({num_beats: m_beats,  beat_value: m_value})).addTickables(tre_notes);
     //var bas_voice = (new VF.Voice({num_beats: m_beats,  beat_value: m_value})).addTickables(bas_notes);
     var tre_voice = (new VF.Voice()).setStrict(false).addTickables(tre_notes);
     var bas_voice = (new VF.Voice()).setStrict(false).addTickables(bas_notes);
 
+    var tre_beams = VF.Beam.applyAndGetBeams(tre_voice);
+    var bas_beams = VF.Beam.applyAndGetBeams(bas_voice, -1);
+
     console.log("There!");
 
     var formatter = new VF.Formatter().joinVoices([tre_voice, bas_voice]).format([tre_voice, bas_voice], measure_len);
 
+    /*
+    var tre_beams = VF.Beam.generateBeams(tre_notes);
+
+    tre_beams.forEach(function(beam) {
+        beam.setContext(context).draw();
+    });    */
+
+
+
     // Draw voices
     tre_voice.draw(context, tre_stave);
     bas_voice.draw(context, bas_stave);
+
+    tre_beams.forEach(function(beam) {
+        beam.setContext(context).draw();
+      });
+    bas_beams.forEach(function(beam) {
+        beam.setContext(context).draw();
+      });
     /*
     var group = this.context.openGroup();
     this.context.closeGroup();
@@ -152,7 +175,8 @@ function draw_notes(data){
     g_svg.x(g_svg.x() + this.start_pos);
     this.groupQue.push([g_svg, this.start_pos+this.measure_len]); // (svg, to_shift)
     */
-    console.log("Here!");
+    
+
 
     // Add notes to xs
     var tick_list = formatter.tickContexts.array;
@@ -180,8 +204,12 @@ function draw_notes(data){
     	});
     	xs.push([shift, strs])
     });
-    console.error(xs);
-
+    console.error("Xs!!!!!!!!!!!!!");
+    console.error(xs.length);
+    xs.sort(function(a, b){return a[0] - b[0];});
+    xs.forEach(function(e, i){
+        console.error(e);
+    });
   	// return xs;
 }
 

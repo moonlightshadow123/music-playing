@@ -46,4 +46,12 @@ OSCFunc({ | msg, time, addr, port |
 },'/noteOff');
 )
 
+(
+var timeNow;
+TempoClock.default.tempo = 2;
+timeNow = TempoBusClock.default.beats;
+"Time is now: ".post; timeNow.postln;
+TempoBusClock.default.schedAbs(timeNow + 5,
+	{"Time is later: ".post; thisThread.clock.beats.postln; nil});
+)
 s.freeAll;
