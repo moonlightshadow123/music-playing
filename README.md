@@ -3,7 +3,9 @@
 but in return, I managed my study and status poorly. That is not a period of proud, but definitely of respect and redemption. 
 
 # Current functionality
-- playing music by keyboard.
+- playing music by keyboard, UI using [pyqt5](https://pypi.org/project/PyQt5/).
+- sheet music presentation using [vexflow](https://www.vexflow.com/).
+- sound playing using [supercollider](https://supercollider.github.io/).
 - music, e.g. __Molihua__, auto-playing. 
 ![](screenshots/auto-playing.gif)
 - pausing and resuming auto-playing.
